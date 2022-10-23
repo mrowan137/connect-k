@@ -1,0 +1,16 @@
+# files to not upload to Google Cloud; for more info:
+#   $ gcloud topic gcloudignore
+
+# this file
+.gcloudignore
+
+# Git files
+.git
+.gitignore
+
+# Python
+__pycache__/
+/setup.cfg
+
+# backup files
+*~

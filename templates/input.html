@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+ <head>
+  <title>CONNECT-K</title>
+  <link href="/static/style.css" rel="stylesheet" type="text/css">
+ </head>
+ <body style="width: 100%; height: 100%;">
+  <div style="margin-left: auto; margin-right: auto;
+   margin-top: 15%; max-width: 960px;">
+   <h1 style="text-align: center; font-family: 'Press Start 2P';">CONNECT-K</h1>
+   <p style="text-align:center; font-family: 'arial';">
+    Instructions: Players take turns placing tiles (red or blue) on the bottom
+    row of a grid.<br>
+    The first player to form a line (horizontal or vertical) of their color
+    of length <code>k</code> wins.
+   </p>
+   <form method=post action="">
+    <table style="margin-left: auto; margin-right: auto; font-family: 'arial';">
+     {% for field in form %}
+      <tr>
+       <td>{{ field.label }}</td>
+       <td><div style="width:100%">{{ field }}</div> </td>
+      </tr>
+     {% endfor %}
+    </table>
+    <p style="text-align:center;">
+      <input type=submit value=Start game/>
+    </p>
+   </form>
+  </div>
+ </body>
+</html>
