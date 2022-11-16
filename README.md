@@ -64,7 +64,7 @@ When working with the App Engine platform, the following are some useful
 
 ## Author
 
-Michael E. Rowan — [mrowan137](https://github.com/mrowan137) — [mrowan137@gmail.com](mailto:mrowan137@gmail.com).
+Michael E. Rowan — [mrowan137](https://github.com/mrowan137) — [michael@mrowan137.dev](michael@mrowan137.dev).
 
 
 ## License
