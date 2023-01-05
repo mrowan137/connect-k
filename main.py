@@ -111,7 +111,7 @@ class ConnectK(object):
       for board_entry in session["board"]:
         self.board_[int(board_entry)] = session["board"][board_entry]
 
-      self.SetBoardDisplay_(
+      self.SetBoardDisplay(
         self.m_,
         self.n_,
         session["moves_list"][0] if session["moves_list"] else 0
@@ -139,13 +139,13 @@ class ConnectK(object):
     self.n_ = N
 
     self.board_ = defaultdict(list)
-    self.SetBoardDisplay_(self.m_, self.n_, 0)
+    self.SetBoardDisplay(self.m_, self.n_, 0)
 
     self.moves_list_ = list()
     self.game_over_ = False
 
 
-  def SetBoardDisplay_(self, m, n, center):
+  def SetBoardDisplay(self, m, n, center):
     """Update board display over (m x n) grid around a move `center`."""
     # set row and column coordinates
     self.board_display_ = [["" for j in range(n)] for i in range(m)]
@@ -165,7 +165,7 @@ class ConnectK(object):
           )
 
 
-  def ResetBoard_(self):
+  def ResetBoard(self):
     """Clear board, board display, current player, and reset display dims."""
     self.board_.clear()
     self.current_player_ = None
@@ -177,7 +177,7 @@ class ConnectK(object):
       self.board_display_[(self.m_ - 2) - i][0] = i
 
 
-  def CheckForGameOver_(self, player, forecast=False):
+  def CheckForGameOver(self, player, forecast=False):
     """Check if horizontal or vertical line length `k` for some player."""
     winner = None
     winning_move_i = None
@@ -240,50 +240,50 @@ class ConnectK(object):
     return winner, winning_move_i
 
 
-  def GameOver_(self):
+  def GameOver(self):
     """Returns `game over` state."""
     return self.game_over_
 
 
-  def ToggleCurrentPlayer_(self):
+  def ToggleCurrentPlayer(self):
     """Toggle curreny player."""
     self.current_player_ = (self.current_player_ + 1)%2
 
 
-  def PlayMove_(self, move):
+  def PlayMove(self, move):
     """Log move to history, play move to board, and toggle current player."""
     # play the move
     self.moves_list_.insert(0, move)
     self.board_[move].insert(0, self.current_player_)
 
     # update whose turn it is
-    self.ToggleCurrentPlayer_()
+    self.ToggleCurrentPlayer()
 
 
-  def UnplayMove_(self):
+  def UnplayMove(self):
     """Undo last move (remove from game log, board, and toggle player)."""
     if len(self.moves_list_) == 0:
       return
 
     # unplay the move
-    self.ToggleCurrentPlayer_()
+    self.ToggleCurrentPlayer()
     move = self.moves_list_.pop(0)
     self.board_[move].pop(0)
     if not self.board_[move]:
       del self.board_[move]
 
 
-  def UpdateDisplay_(self):
+  def UpdateDisplay(self):
     """Sync board display with board, centered around last move."""
     if not self.moves_list_:
       return
 
     # update the display
     self.m_ = max(max([len(col) + 1 for col in self.board_.values()]), self.m_)
-    self.SetBoardDisplay_(self.m_, self.n_, self.moves_list_[0])
+    self.SetBoardDisplay(self.m_, self.n_, self.moves_list_[0])
 
 
-  def ComputeMove_(self, mode):
+  def ComputeMove(self, mode):
     """Calculate next computer move, for `easy` or `hard` modes."""
     if not self.moves_list_:
       return 0
@@ -296,12 +296,12 @@ class ConnectK(object):
 
       # if it's a winning move for computer, we'll take it; a draw is OK
       for j in range(l, r+1):
-        self.PlayMove_(j)
-        computer_winner, _ = self.CheckForGameOver_(
+        self.PlayMove(j)
+        computer_winner, _ = self.CheckForGameOver(
           self.opponent_color_,
           forecast=True
         )
-        self.UnplayMove_()
+        self.UnplayMove()
         if computer_winner:
           return j
 
@@ -314,26 +314,26 @@ class ConnectK(object):
       opponent = not me
 
       for j in range(l, r+1):
-        self.PlayMove_(j)
-        computer_winner, _ = self.CheckForGameOver_(
+        self.PlayMove(j)
+        computer_winner, _ = self.CheckForGameOver(
           self.opponent_color_,
           forecast=True
         )
-        self.UnplayMove_()
+        self.UnplayMove()
         if computer_winner:
           return j
 
       # if it's a winning move for the computer's
       # opponent (the human), we'll block it
       for j in range(l, r+1):
-        self.ToggleCurrentPlayer_()
-        self.PlayMove_(j)
-        player_winner, player_winning_move_i = self.CheckForGameOver_(
+        self.ToggleCurrentPlayer()
+        self.PlayMove(j)
+        player_winner, player_winning_move_i = self.CheckForGameOver(
           self.player_color_,
           forecast=True
         )
-        self.UnplayMove_()
-        self.ToggleCurrentPlayer_()
+        self.UnplayMove()
+        self.ToggleCurrentPlayer()
         if player_winner:
           if (
             j in self.board_
@@ -362,9 +362,9 @@ class ConnectK(object):
       best_move = 0
       score = float("-inf")
       for j in range(l, r+1):
-        self.PlayMove_(j)
-        my_contiguous_blocks = self.CountAdjacentBlocks_(me)
-        opponent_contiguous_blocks = self.CountAdjacentBlocks_(opponent)
+        self.PlayMove(j)
+        my_contiguous_blocks = self.CountAdjacentBlocks(me)
+        opponent_contiguous_blocks = self.CountAdjacentBlocks(opponent)
         best_score_so_far = score
 
         # this is just a weighting chosen on intuition, it could be experimented
@@ -378,19 +378,19 @@ class ConnectK(object):
         )
 
         # make sure we don't take a move that cause the other player to win
-        player_winner, _ = self.CheckForGameOver_(
+        player_winner, _ = self.CheckForGameOver(
           self.player_color_,
           forecast=True
         )
         best_move = (
           j if score > best_score_so_far and not player_winner else best_move
         )
-        self.UnplayMove_()
+        self.UnplayMove()
 
       return best_move
 
 
-  def CountAdjacentBlocks_(self, player):
+  def CountAdjacentBlocks(self, player):
     """Count adjacent blocks resulting from last move for a player."""
     last_move = self.moves_list_[0]
 
@@ -475,7 +475,7 @@ BOARD_DISPLAY_TEMPLATE = """
          class="button {{
           (' big_on_hover' if (i == ck.m_ - 2) 
            and (j != 0) 
-           and ck.GameOver_() == False 
+           and ck.GameOver() == False 
            and ck.computer_is_thinking_ == False 
            else ""
           )
@@ -506,7 +506,7 @@ BOARD_DISPLAY_TEMPLATE = """
          {{
           ("disabled" if (i != ck.m_ - 2) 
            or (j == 0) 
-           or ck.GameOver_() == True 
+           or ck.GameOver() == True 
            or ck.computer_is_thinking_ == True
           )
          }}>
@@ -642,8 +642,8 @@ def Play(k=None, player_color=None, first_player=None, opponent=None):
       )
     )
     ck.computer_is_thinking_ = False
-    mv = ck.ComputeMove_(ck.computer_difficulty_)
-    ck.PlayMove_(mv)
+    mv = ck.ComputeMove(ck.computer_difficulty_)
+    ck.PlayMove(mv)
     SaveGame(ck)
     return response
 
@@ -652,26 +652,26 @@ def Play(k=None, player_color=None, first_player=None, opponent=None):
     ck.current_player_ != ck.player_color_
     and ck.opponent_.find("Computer") != -1
   ):
-    ck.UpdateDisplay_()
+    ck.UpdateDisplay()
     SaveGame(ck)
 
   # go to input page if player clicks reset
   if "reset" in request.form:
-    ck.ResetBoard_()
+    ck.ResetBoard()
     SaveGame(ck)
     return redirect(url_for("Root"))
 
   # play the last requested move
   winner, opponent_winner = None, None
   if "move" in request.form:
-    ck.PlayMove_(int(request.form["move"]))
+    ck.PlayMove(int(request.form["move"]))
     if ck.opponent_.find("Computer") != -1:
       ck.computer_is_thinking_ = True
 
   # check if the game is over for the player, opponent, and update board display
-  winner, _ = ck.CheckForGameOver_(ck.player_color_)
-  opponent_winner, _ = ck.CheckForGameOver_(ck.opponent_color_)
-  ck.UpdateDisplay_()
+  winner, _ = ck.CheckForGameOver(ck.player_color_)
+  opponent_winner, _ = ck.CheckForGameOver(ck.opponent_color_)
+  ck.UpdateDisplay()
 
   # the game could be over if anyone is a winner, and if both win it's a draw
   if winner or opponent_winner:
