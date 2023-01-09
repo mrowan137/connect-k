@@ -72,7 +72,7 @@ Michael E. Rowan — [mrowan137](https://github.com/mrowan137) — [michael@mrow
 [MIT License](https://github.com/mrowan137/connect-k/LICENSE).
 
 
-## Acknowledgments
+## References
 
   * [Flask](https://palletsprojects.com/p/flask/)
   * [WTForms](https://wtforms.readthedocs.io/en/3.0.x/)
