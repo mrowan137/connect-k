@@ -26,9 +26,9 @@ from flask import (
     render_template,
     render_template_string,
     redirect,
-    url_for,
-    escape,
+    url_for
 )
+from markupsafe import escape
 
 
 class Input(Form):

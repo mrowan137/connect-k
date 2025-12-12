@@ -28,7 +28,7 @@ Supported gameplay options:
     * [ItsDangerous](https://palletsprojects.com/p/itsdangerous/)
     * [Click](https://palletsprojects.com/p/click/)
   * [WTForms](https://github.com/wtforms/wtforms)
-  * [uuid](https://docs.python.org/3/library/uuid.html)
+  * [google-cloud-secret-manager](https://docs.cloud.google.com/secret-manager/docs)
 
 
 ## Help
@@ -76,6 +76,7 @@ Michael E. Rowan — [mrowan137](https://github.com/mrowan137) — [michael@mrow
 
   * [Flask](https://palletsprojects.com/p/flask/)
   * [WTForms](https://wtforms.readthedocs.io/en/3.0.x/)
+  * [Google Cloud Secret Manager](https://docs.cloud.google.com/secret-manager/docs)
   * [Google Cloud App Engine](https://cloud.google.com/appengine)
   * [Google Cloud App Engine: how to remove older versions?](https://almcc.me/blog/2017/05/04/removing-older-versions-on-google-app-engine/)
   * [Google Cloud App Engine: useful script for removing older versions](https://gist.github.com/spark2ignite/75613f590a24244356472b1e06eac4df)
