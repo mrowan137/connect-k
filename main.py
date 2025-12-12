@@ -12,6 +12,8 @@ options are:
 
 """
 
+import os
+from google.cloud import secretmanager
 from collections import defaultdict
 from uuid import uuid4
 
@@ -540,8 +542,12 @@ BOARD_DISPLAY_TEMPLATE = """
 
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "9dda556f72ee403bab999bbc5a6e6808"
-
+client = secretmanager.SecretManagerServiceClient()
+project = os.environ["GOOGLE_CLOUD_PROJECT"]
+name = f"projects/{project}/secrets/flask-secret-key/versions/latest"
+app.config["SECRET_KEY"] = client.access_secret_version(
+    request={"name": name}
+).payload.data.decode()
 
 def GenerateId():
     """Create an ID (to be used as a game identifier)."""
