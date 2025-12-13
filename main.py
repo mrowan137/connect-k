@@ -150,7 +150,7 @@ class ConnectK(object):
 
         self.player_color_ = player_color
         self.current_player_ = current_player
-        self.first_player = current_player
+        self.first_player_ = current_player
         self.opponent_ = opponent
         self.opponent_color_ = None
 
@@ -310,7 +310,7 @@ class ConnectK(object):
             # consider a move within the range of moves so far
             l, r = min(self.board_) - 1, max(self.board_) + 1
             me = self.current_player_
-            opponent = not me
+            opponent = 1 - me
 
             # if it's a winning move for computer, we'll take it; a draw is OK
             for j in range(l, r + 1):
@@ -328,7 +328,7 @@ class ConnectK(object):
             # like above, check for win or draw
             l, r = min(self.board_) - 1, max(self.board_) + 1
             me = self.current_player_
-            opponent = not me
+            opponent = 1 - me
 
             for j in range(l, r + 1):
                 self.PlayMove(j)
@@ -466,8 +466,8 @@ BOARD_DISPLAY_TEMPLATE = """
       url_for(
        "Play", 
        k=ck.k_, 
-       player_color=ck.player_color_,
-       first_player=ck.first_player_,
+       player_color=("Red" if ck.player_color_ == 0 else "Blue"),
+       first_player=("Red" if ck.first_player_ == 0 else "Blue"),
        opponent=ck.opponent_
       ) 
      }}";
@@ -481,7 +481,13 @@ BOARD_DISPLAY_TEMPLATE = """
   <h1 style="text-align:center; font-family: 'Press Start 2P';">
    CONNECT-K={{ck.k_}}
   </h1>
-  <h2 style="font-family: 'Press Start 2P'">{{msg|safe}}</h2>
+  <h2 style="font-family: 'Press Start 2P'">
+   {% if msg["subject"] %}
+    <span style="color: {{msg['color']}};">{{msg["subject"]}}</span>{{msg["text"]}}
+   {% else %}
+    {{msg["text"]}}
+   {% endif %}
+  </h2>
   <form action="" method="POST">
    <table style="margin-left:auto; margin-right: auto;">
     {% for i in range(ck.m_) %}
@@ -540,6 +546,9 @@ BOARD_DISPLAY_TEMPLATE = """
 </html>
 """
 
+def construct_msg(text, subject=None, color=None):
+    """Build message for rendering in board template."""
+    return {"text": text, "subject": subject, "color": color}
 
 app = Flask(__name__)
 client = secretmanager.SecretManagerServiceClient()
@@ -622,6 +631,24 @@ def Root():
 )
 def Play(k=None, player_color=None, first_player=None, opponent=None):
     """Page for playing Connect-k."""
+
+    # validate all route parameters
+    try:
+        k_int = int(k)
+    except ValueError:
+        return redirect(url_for("Root"))
+    if not (1 <= k_int <= 2147483647):
+        return redirect(url_for("Root"))
+
+    if player_color not in {"Red", "Blue"}:
+        return redirect(url_for("Root"))
+
+    if first_player not in {"Red", "Blue"}:
+        return redirect(url_for("Root"))
+
+    if opponent not in {"Computer (easy)", "Computer (hard)", "Human"}:
+        return redirect(url_for("Root"))
+
     ck = LoadGame()
     if not ck:
         # if there's ever a failure to load the game, go back to input page
@@ -636,7 +663,7 @@ def Play(k=None, player_color=None, first_player=None, opponent=None):
     ):
         ck.k_ = int(k)
         ck.player_color_ = 0 if player_color == "Red" else 1
-        ck.opponent_color_ = not ck.player_color_
+        ck.opponent_color_ = 1 - ck.player_color_
         ck.current_player_ = ck.first_player_ = (
             0 if first_player == "Red" else 1
         )
@@ -651,11 +678,13 @@ def Play(k=None, player_color=None, first_player=None, opponent=None):
 
     # if computer opponent, it could be computer opponent's turn
     if ck.computer_is_thinking_:
-        msg = (
-            '<p><span style="color: {};">'
-            "Computer</span> is thinking..."
-            "</p>"
-        ).format("Crimson" if ck.current_player_ == 0 else "DarkBlue")
+        thinking_subject = "Computer"
+        thinking_color = "Crimson" if ck.current_player_ == 0 else "DarkBlue"
+        msg = construct_msg(
+            " is thinking...",
+            subject=thinking_subject,
+            color=thinking_color
+        )
         response = make_response(
             render_template_string(BOARD_DISPLAY_TEMPLATE, ck=ck, msg=msg)
         )
@@ -682,7 +711,12 @@ def Play(k=None, player_color=None, first_player=None, opponent=None):
     # play the last requested move
     winner, opponent_winner = None, None
     if "move" in request.form:
-        ck.PlayMove(int(request.form["move"]))
+        try:
+            move = int(request.form["move"])
+        except (ValueError, TypeError):
+            return redirect(url_for("Play", k=k, player_color=player_color,
+                                    first_player=first_player, opponent=opponent))
+        ck.PlayMove(move)
         if ck.opponent_.find("Computer") != -1:
             ck.computer_is_thinking_ = True
 
@@ -694,17 +728,16 @@ def Play(k=None, player_color=None, first_player=None, opponent=None):
     # the game could be over if anyone is a winner, and if both win it's a draw
     if winner or opponent_winner:
         if winner and opponent_winner:
-            msg = "It's a draw!"
+            msg = construct_msg("It's a draw!")
         else:
             winner = winner if winner else opponent_winner
-            msg = (
-                '<p><span style="color: {};">'
-                " Player {}</span> ({}) is the winner!"
-                "</p>"
-            ).format(
-                "Crimson" if winner == "R" else "DarkBlue",
-                winner,
-                ck.opponent_ if winner == opponent_winner else "Human",
+            winner_subject = f"Player {winner} ({ck.opponent_ if winner == opponent_winner else 'Human'})"
+            winner_color = "Crimson" if winner == "R" else "DarkBlue"
+
+            msg = construct_msg(
+                " is the winner!",
+                subject=winner_subject,
+                color=winner_color
             )
 
         if ck.opponent_.find("Computer") != -1:
@@ -715,19 +748,20 @@ def Play(k=None, player_color=None, first_player=None, opponent=None):
             ck.current_player_ != ck.player_color_
             and ck.opponent_.find("Computer") != -1
         ):
-            msg = (
-                '<p><span style="color: {};">'
-                "Computer</span> is thinking..."
-                "</p>"
-            ).format("Crimson" if ck.current_player_ == 0 else "DarkBlue")
+            thinking_subject = "Computer"
+            thinking_color = "Crimson" if ck.current_player_ == 0 else "DarkBlue"
+            msg = construct_msg(
+                " is thinking...",
+                subject=thinking_subject,
+                color=thinking_color
+            )
         else:
-            msg = (
-                '<p><span style="color: {};">'
-                "Player {}</span> it's your turn"
-                "</p>"
-            ).format(
-                "Crimson" if ck.current_player_ == 0 else "DarkBlue",
-                "R" if ck.current_player_ == 0 else "B",
+            active_player_subject = f"Player {'R' if ck.current_player_ == 0 else 'B'}"
+            active_player_color = "Crimson" if ck.current_player_ == 0 else "DarkBlue"
+            msg = construct_msg(
+                " it's your turn",
+                subject=active_player_subject,
+                color=active_player_color
             )
 
     response = make_response(
